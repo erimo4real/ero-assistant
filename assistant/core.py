@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from assistant.brain import check_ollama, make_brain
+from assistant.pc_tools import handle_pc_command
 from assistant.storage import APP_NAME, AssistantState
 
 
@@ -63,6 +64,8 @@ class PersonalAssistant:
             return self.set_ollama_model(payload)
         if command == "/doctor":
             return self.doctor()
+        if command == "/pc":
+            return handle_pc_command(payload)
         if command == "/remember":
             return self.remember(payload)
         if command == "/memories":
@@ -210,6 +213,7 @@ def help_text() -> str:
 /brain ollama         Use local Ollama offline model
 /model MODEL          Set Ollama model name
 /doctor               Check local Ollama connection
+/pc help              Show safe PC-control commands
 /remember TEXT        Save a local memory
 /memories             Show saved memories
 /forget NUMBER        Delete a memory

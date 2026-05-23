@@ -11,6 +11,7 @@ The code is now structured so we can later add desktop, web, mobile, voice, and 
 - Save journal notes
 - Save conversation history
 - Switch between the built-in offline rules brain and an optional local Ollama model
+- Control basic PC actions on your command with `/pc`
 - Store everything locally in `data/assistant_state.json`
 
 ## Run it
@@ -57,6 +58,11 @@ Activate the virtual environment in PowerShell:
 /brain ollama
 /model qwen2.5:0.5b
 /doctor
+/pc help
+/pc system
+/pc open C:\Users\erimo\Documents
+/pc web github.com
+/pc run dir
 /remember I want direct and practical advice
 /memories
 /task Learn Python for 30 minutes
@@ -117,6 +123,23 @@ If you prefer the bigger model and `/doctor` shows it as `llama3.2:latest`, use:
 personal_assistant.py   CLI launcher
 assistant/core.py       Commands and assistant behavior
 assistant/brain.py      Brain providers: rules now, Ollama later
+assistant/pc_tools.py   Safe PC-control tools
 assistant/storage.py    Local JSON storage
 data/                   Your private local assistant data
 ```
+
+## PC control
+
+The assistant can perform simple PC actions only when you use `/pc`.
+
+Safe commands available now:
+
+```text
+/pc system
+/pc open PATH_OR_APP
+/pc web URL
+/pc run READ_ONLY_COMMAND
+```
+
+`/pc run` is limited to read-only commands such as `dir`, `ipconfig`, and `systeminfo`.
+Risky actions like deleting files, installing software, or sending messages are not enabled.

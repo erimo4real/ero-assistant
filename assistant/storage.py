@@ -27,6 +27,7 @@ DEFAULT_STATE: dict[str, Any] = {
     "tasks": [],
     "journal": [],
     "conversation": [],
+    "pending_action": None,
 }
 
 

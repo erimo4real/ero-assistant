@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from assistant.brain import check_ollama, make_brain
-from assistant.pc_tools import handle_pc_command
+from assistant.pc_tools import cancel_pending, execute_pending, handle_pc_command
 from assistant.storage import APP_NAME, AssistantState
 
 
@@ -54,6 +54,10 @@ class PersonalAssistant:
             return help_text()
         if command in {"/quit", "/exit"}:
             raise KeyboardInterrupt
+        if command == "/yes":
+            return self.approve_pending()
+        if command == "/no":
+            return self.cancel_pending()
         if command == "/name":
             return self.set_user_name(payload)
         if command == "/assistant-name":
@@ -65,7 +69,7 @@ class PersonalAssistant:
         if command == "/doctor":
             return self.doctor()
         if command == "/pc":
-            return handle_pc_command(payload)
+            return self.pc(payload)
         if command == "/remember":
             return self.remember(payload)
         if command == "/memories":
@@ -84,6 +88,21 @@ class PersonalAssistant:
             return self.profile()
 
         return f"I do not know `{command}` yet. Type /help."
+
+    def approve_pending(self) -> str:
+        result = execute_pending(self.state.data)
+        self.state.save()
+        return result
+
+    def cancel_pending(self) -> str:
+        result = cancel_pending(self.state.data)
+        self.state.save()
+        return result
+
+    def pc(self, payload: str) -> str:
+        result = handle_pc_command(payload, self.state.data)
+        self.state.save()
+        return result
 
     def set_user_name(self, name: str) -> str:
         if not name:
@@ -214,6 +233,8 @@ def help_text() -> str:
 /model MODEL          Set Ollama model name
 /doctor               Check local Ollama connection
 /pc help              Show safe PC-control commands
+/yes                  Approve pending PC action
+/no                   Cancel pending PC action
 /remember TEXT        Save a local memory
 /memories             Show saved memories
 /forget NUMBER        Delete a memory

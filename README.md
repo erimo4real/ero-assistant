@@ -63,6 +63,10 @@ Activate the virtual environment in PowerShell:
 /pc open C:\Users\erimo\Documents
 /pc web github.com
 /pc run dir
+/pc mkdir C:\Users\erimo\Documents\TestFolder
+/pc pending
+/yes
+/no
 /remember I want direct and practical advice
 /memories
 /task Learn Python for 30 minutes
@@ -139,7 +143,14 @@ Safe commands available now:
 /pc open PATH_OR_APP
 /pc web URL
 /pc run READ_ONLY_COMMAND
+/pc mkdir PATH
+/pc copy SOURCE DEST
+/pc move SOURCE DEST
+/pc pending
+/yes
+/no
 ```
 
 `/pc run` is limited to read-only commands such as `dir`, `ipconfig`, and `systeminfo`.
+Folder creation, copy, and move actions require confirmation with `/yes`.
 Risky actions like deleting files, installing software, or sending messages are not enabled.

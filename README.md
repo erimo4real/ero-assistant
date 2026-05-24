@@ -60,8 +60,10 @@ Activate the virtual environment in PowerShell:
 /doctor
 /pc help
 /pc system
+/pc app notepad
 /pc open C:\Users\erimo\Documents
 /pc web github.com
+/pc search . *.py
 /pc run dir
 /pc mkdir C:\Users\erimo\Documents\TestFolder
 /pc pending
@@ -141,7 +143,9 @@ Safe commands available now:
 ```text
 /pc system
 /pc open PATH_OR_APP
+/pc app NAME
 /pc web URL
+/pc search ROOT PATTERN
 /pc run READ_ONLY_COMMAND
 /pc mkdir PATH
 /pc copy SOURCE DEST
@@ -154,3 +158,9 @@ Safe commands available now:
 `/pc run` is limited to read-only commands such as `dir`, `ipconfig`, and `systeminfo`.
 Folder creation, copy, and move actions require confirmation with `/yes`.
 Risky actions like deleting files, installing software, or sending messages are not enabled.
+
+App presets available now:
+
+```text
+calc, calculator, cmd, explorer, notepad, powershell, pwsh
+```

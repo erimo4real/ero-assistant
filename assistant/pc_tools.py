@@ -23,6 +23,18 @@ READ_ONLY_COMMANDS = {
     "where",
 }
 
+APP_PRESETS = {
+    "calc": "calc.exe",
+    "calculator": "calc.exe",
+    "cmd": "cmd.exe",
+    "explorer": "explorer.exe",
+    "notepad": "notepad.exe",
+    "powershell": "powershell.exe",
+    "pwsh": "powershell.exe",
+}
+
+SKIP_SEARCH_DIRS = {".git", ".venv", "__pycache__", "node_modules"}
+
 
 def handle_pc_command(payload: str, state: dict[str, Any]) -> str:
     action, _, rest = payload.strip().partition(" ")
@@ -35,8 +47,12 @@ def handle_pc_command(payload: str, state: dict[str, Any]) -> str:
         return system_info()
     if action == "open":
         return open_target(rest)
+    if action == "app":
+        return open_app(rest)
     if action == "web":
         return open_web(rest)
+    if action == "search":
+        return search_files(rest)
     if action == "run":
         return run_read_only(rest)
     if action == "pending":
@@ -55,7 +71,9 @@ def pc_help() -> str:
     return """PC commands:
 /pc system                 Show basic system info
 /pc open PATH_OR_APP        Open a file, folder, or app
+/pc app NAME                Open an approved app preset
 /pc web URL                 Open a website
+/pc search ROOT PATTERN     Search files by name
 /pc run READ_ONLY_COMMAND   Run a safe read-only command
 /pc mkdir PATH              Prepare to create a folder
 /pc copy SOURCE DEST        Prepare to copy a file or folder
@@ -66,6 +84,9 @@ def pc_help() -> str:
 
 Allowed /pc run commands:
 cd, dir, echo, hostname, ipconfig, systeminfo, tree, type, ver, where
+
+App presets:
+calc, calculator, cmd, explorer, notepad, powershell, pwsh
 """
 
 
@@ -94,6 +115,24 @@ def open_target(target: str) -> str:
         return f"I could not open that target. Reason: {error}"
 
     return f"Opened: {target}"
+
+
+def open_app(app_name: str) -> str:
+    if not app_name:
+        return "Use it like this: /pc app notepad"
+
+    key = app_name.strip().lower()
+    command = APP_PRESETS.get(key)
+    if not command:
+        presets = ", ".join(sorted(APP_PRESETS))
+        return f"Unknown app preset: {app_name}. Available presets: {presets}"
+
+    try:
+        subprocess.Popen([command], shell=False)
+    except OSError as error:
+        return f"I could not open {app_name}. Reason: {error}"
+
+    return f"Opened app: {app_name}"
 
 
 def open_web(url: str) -> str:
@@ -153,6 +192,49 @@ def run_read_only(command_text: str) -> str:
         output = output[:4000] + "\n...output truncated..."
 
     return output
+
+
+def search_files(payload: str) -> str:
+    try:
+        parts = shlex.split(payload, posix=False)
+    except ValueError as error:
+        return f"I could not parse the search. Reason: {error}"
+
+    if len(parts) != 2:
+        return "Use it like this: /pc search ROOT PATTERN"
+
+    root = Path(parts[0]).expanduser()
+    pattern = parts[1]
+    if not root.exists():
+        return f"I could not find the root folder: {root}"
+    if not root.is_dir():
+        return f"Search root is not a folder: {root}"
+
+    matches: list[str] = []
+    try:
+        for path in search_paths(root, pattern):
+            matches.append(str(path))
+            if len(matches) >= 25:
+                break
+    except OSError as error:
+        return f"I could not complete the search. Reason: {error}"
+
+    if not matches:
+        return f"No files found for pattern `{pattern}` under {root}."
+
+    lines = [f"Found {len(matches)} result(s). Showing up to 25:"]
+    lines.extend(f"{index + 1}. {match}" for index, match in enumerate(matches))
+    return "\n".join(lines)
+
+
+def search_paths(root: Path, pattern: str):
+    for current_root, dirs, files in os.walk(root):
+        dirs[:] = [directory for directory in dirs if directory not in SKIP_SEARCH_DIRS]
+        current_path = Path(current_root)
+        for filename in files:
+            path = current_path / filename
+            if path.match(pattern):
+                yield path
 
 
 def queue_mkdir(path_text: str, state: dict[str, Any]) -> str:

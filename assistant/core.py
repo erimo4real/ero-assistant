@@ -5,6 +5,7 @@ from datetime import datetime
 from assistant.brain import check_ollama, make_brain
 from assistant.pc_tools import cancel_pending, execute_pending, handle_pc_command
 from assistant.storage import APP_NAME, AssistantState
+from assistant.voice import VoiceSetupError, run_voice_loop
 
 
 class PersonalAssistant:
@@ -68,6 +69,8 @@ class PersonalAssistant:
             return self.set_ollama_model(payload)
         if command == "/doctor":
             return self.doctor()
+        if command == "/voice":
+            return self.voice()
         if command == "/pc":
             return self.pc(payload)
         if command == "/remember":
@@ -136,6 +139,12 @@ class PersonalAssistant:
 
     def doctor(self) -> str:
         return check_ollama(self.state.data)
+
+    def voice(self) -> str:
+        try:
+            return run_voice_loop(self.handle)
+        except VoiceSetupError as error:
+            return str(error)
 
     def remember(self, memory: str) -> str:
         if not memory:
@@ -232,6 +241,7 @@ def help_text() -> str:
 /brain ollama         Use local Ollama offline model
 /model MODEL          Set Ollama model name
 /doctor               Check local Ollama connection
+/voice                Start push-to-talk voice mode
 /pc help              Show safe PC-control commands
 /yes                  Approve pending PC action
 /no                   Cancel pending PC action

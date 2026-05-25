@@ -1,2 +1,2 @@
-# No external packages are required yet.
-# Keep this file so the project can grow like a normal Python app.
+numpy>=1.26
+sounddevice>=0.4.7

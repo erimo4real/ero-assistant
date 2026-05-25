@@ -4,6 +4,9 @@ __pycache__/
 
 # Local private assistant data
 data/
+recordings/
+models/
+tools/
 
 # Local editor and OS files
 .vscode/

@@ -11,6 +11,7 @@ The code is now structured so we can later add desktop, web, mobile, voice, and 
 - Save journal notes
 - Save conversation history
 - Switch between the built-in offline rules brain and an optional local Ollama model
+- Use push-to-talk voice mode with offline Whisper.cpp transcription
 - Control basic PC actions on your command with `/pc`
 - Store everything locally in `data/assistant_state.json`
 
@@ -58,6 +59,7 @@ Activate the virtual environment in PowerShell:
 /brain ollama
 /model qwen2.5:0.5b
 /doctor
+/voice
 /pc help
 /pc system
 /pc app notepad
@@ -122,6 +124,27 @@ If you prefer the bigger model and `/doctor` shows it as `llama3.2:latest`, use:
 ```text
 /model llama3.2:latest
 ```
+
+## Voice mode
+
+Voice mode uses Whisper.cpp with the `small.en` model for offline speech-to-text.
+The model and binary are stored locally and are not pushed to GitHub.
+
+Install voice dependencies and download the local voice files:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe scripts\setup_voice.py
+```
+
+Start ERO, then run:
+
+```text
+/voice
+```
+
+In voice mode, press Enter to start recording, speak, then press Enter again to stop.
+ERO transcribes your voice, responds, and speaks back using Windows voice.
 
 ## Project structure
 

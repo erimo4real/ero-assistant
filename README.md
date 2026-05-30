@@ -71,6 +71,11 @@ Activate the virtual environment in PowerShell:
 /pc pending
 /yes
 /no
+ipconfig
+dir
+cls
+calc
+web github.com
 /remember I want direct and practical advice
 /memories
 /task Learn Python for 30 minutes
@@ -186,4 +191,17 @@ App presets available now:
 
 ```text
 calc, calculator, cmd, explorer, notepad, powershell, pwsh
+```
+
+You can also use shortcuts without `/pc`:
+
+```text
+ipconfig
+dir
+cls
+calc
+notepad
+web github.com
+open C:\Users\erimo\Documents
+search . *.py
 ```

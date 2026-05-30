@@ -3,7 +3,12 @@ from __future__ import annotations
 from datetime import datetime
 
 from assistant.brain import check_ollama, make_brain
-from assistant.pc_tools import cancel_pending, execute_pending, handle_pc_command
+from assistant.pc_tools import (
+    cancel_pending,
+    execute_pending,
+    handle_pc_command,
+    handle_pc_shortcut,
+)
 from assistant.storage import APP_NAME, AssistantState
 from assistant.voice import VoiceSetupError, run_voice_loop
 
@@ -34,6 +39,10 @@ class PersonalAssistant:
 
         if text.startswith("/"):
             return self.handle_command(text)
+
+        shortcut_reply = self.pc_shortcut(text)
+        if shortcut_reply is not None:
+            return shortcut_reply
 
         return self.chat(text)
 
@@ -105,6 +114,12 @@ class PersonalAssistant:
     def pc(self, payload: str) -> str:
         result = handle_pc_command(payload, self.state.data)
         self.state.save()
+        return result
+
+    def pc_shortcut(self, text: str) -> str | None:
+        result = handle_pc_shortcut(text, self.state.data)
+        if result is not None:
+            self.state.save()
         return result
 
     def set_user_name(self, name: str) -> str:

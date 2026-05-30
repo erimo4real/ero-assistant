@@ -34,6 +34,14 @@ APP_PRESETS = {
 }
 
 SKIP_SEARCH_DIRS = {".git", ".venv", "__pycache__", "node_modules"}
+SYSTEM32 = Path("C:/Windows/System32")
+WINDOWS_COMMAND_PATHS = {
+    "hostname": SYSTEM32 / "hostname.exe",
+    "ipconfig": SYSTEM32 / "ipconfig.exe",
+    "systeminfo": SYSTEM32 / "systeminfo.exe",
+    "tree": SYSTEM32 / "tree.com",
+    "where": SYSTEM32 / "where.exe",
+}
 
 
 def handle_pc_command(payload: str, state: dict[str, Any]) -> str:
@@ -67,6 +75,27 @@ def handle_pc_command(payload: str, state: dict[str, Any]) -> str:
     return "Unknown /pc action. Use /pc help."
 
 
+def handle_pc_shortcut(text: str, state: dict[str, Any]) -> str | None:
+    action, _, rest = text.strip().partition(" ")
+    action = action.lower()
+    rest = rest.strip()
+
+    if action in {"cls", "clear"}:
+        return clear_screen()
+    if action in APP_PRESETS and not rest:
+        return open_app(action)
+    if action in READ_ONLY_COMMANDS:
+        return run_read_only(text)
+    if action == "web" and rest:
+        return open_web(rest)
+    if action == "open" and rest:
+        return open_target(rest)
+    if action == "search" and rest:
+        return search_files(rest)
+
+    return None
+
+
 def pc_help() -> str:
     return """PC commands:
 /pc system                 Show basic system info
@@ -81,6 +110,9 @@ def pc_help() -> str:
 /pc pending                 Show pending action
 /yes                        Approve pending action
 /no                         Cancel pending action
+
+Shortcuts also work:
+ipconfig, dir, cls, calc, notepad, web github.com, open PATH
 
 Allowed /pc run commands:
 cd, dir, echo, hostname, ipconfig, systeminfo, tree, type, ver, where
@@ -138,6 +170,8 @@ def open_app(app_name: str) -> str:
 def open_web(url: str) -> str:
     if not url:
         return "Use it like this: /pc web https://github.com"
+    if url.strip().lower() in {"url", "website"}:
+        return "Use it like this: /pc web github.com"
     if "://" not in url:
         url = f"https://{url}"
 
@@ -159,6 +193,11 @@ def run_read_only(command_text: str) -> str:
     if not parts:
         return "Use it like this: /pc run dir"
 
+    if parts[0].lower() == "command":
+        parts = parts[1:]
+    if not parts:
+        return "Use it like this: /pc run ipconfig"
+
     command = Path(parts[0]).name.lower()
     if command.endswith(".exe"):
         command = command[:-4]
@@ -168,6 +207,10 @@ def run_read_only(command_text: str) -> str:
             f"`{parts[0]}` is not approved for /pc run yet. "
             "Use /pc help to see safe commands."
         )
+
+    command_path = WINDOWS_COMMAND_PATHS.get(command)
+    if command_path and command_path.exists():
+        parts[0] = str(command_path)
 
     command_line = subprocess.list2cmdline(parts)
 
@@ -192,6 +235,10 @@ def run_read_only(command_text: str) -> str:
         output = output[:4000] + "\n...output truncated..."
 
     return output
+
+
+def clear_screen() -> str:
+    return "\033[2J\033[HScreen cleared."
 
 
 def search_files(payload: str) -> str:
